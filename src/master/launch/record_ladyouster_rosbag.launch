@@ -1,0 +1,30 @@
+<launch>
+
+    <arg name="project" default="all"/>
+    <arg name="record_both" default="true"/>
+    <arg name="record_only_cameras" default="true"/>
+    <arg name="record_only_lidar" default="true"/>
+    <arg name="bagfolder" default="/home/benni/catkin_ws/0_Bagfiles"/>
+
+    <!--- LIDAR -->
+    <include file="$(find ouster_ros)/launch/sensor.launch" />
+
+    <!--- Ladybug -->
+    <include file="$(find pointgrey_ladybug)/launch/test.launch" />
+
+    <!-- Record all topics to one Bagfile TODO: ADD LIDAR TOPICS-->
+    <node pkg="rosbag" type="record" name="rosbag_record_cam_and_lidar"
+       args="record -o $(arg bagfolder)/Both/both /ladybug/camera0/image_raw /ladybug/camera1/image_raw /ladybug/camera2/image_raw /ladybug/camera3/image_raw /ladybug/camera4/image_raw /ladybug/camera5/image_raw /ouster/points /ouster/range_image /ouster/reflec_image /ouster/signal_image /ouster/nearir_image"
+       if="$(arg record_both)"/>
+
+    <!-- Record only Ladybug topics to Bagfile -->
+    <node pkg="rosbag" type="record" name="rosbag_record_cam"
+       args="record -o $(arg bagfolder)/Ladybug/ladybug /ladybug/camera0/image_raw /ladybug/camera1/image_raw /ladybug/camera2/image_raw /ladybug/camera3/image_raw /ladybug/camera4/image_raw /ladybug/camera5/image_raw"
+       if="$(arg record_only_cameras)"/>
+
+    <!-- Record only LiDAR topics to Bagfile TODO: ADD LIDAR TOPICS -->
+    <node pkg="rosbag" type="record" name="rosbag_record_lidar"
+       args="record -o $(arg bagfolder)/LiDAR/lidar /ouster/points /ouster/range_image /ouster/reflec_image /ouster/signal_image /ouster/nearir_image"
+       if="$(arg record_only_lidar)"/>
+       
+</launch>

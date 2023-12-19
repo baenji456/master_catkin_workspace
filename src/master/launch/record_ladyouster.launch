@@ -1,0 +1,19 @@
+<launch>
+
+    <arg name="project" default="all"/>
+    <arg name="record_pcap" default="false"/>
+    <arg name="record_pgr" default="true"/>
+
+    <!--- LIDAR -->
+    <include file="$(find ouster_ros)/launch/sensor.launch" if="$(arg record_pcap)"/>
+
+    <!--- Ladybug 
+    <include file="$(find pointgrey_ladybug)/launch/test.launch"/>-->
+
+    <node pkg="master" type="record_pgr" name="record_pgr" output="screen" if="$(arg record_pgr)"/>
+
+    <node pkg="master" type="record_pcap.py" name="record_pcap" output="screen" if="$(arg record_pcap)" required="true">
+        <param name="capture_time" type="int" value="42"/>
+    </node>
+
+</launch>

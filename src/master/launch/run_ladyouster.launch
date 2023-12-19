@@ -1,0 +1,13 @@
+<launch>
+
+    <arg name="project" default="all"/>
+
+    <!--- LIDAR -->
+    <include file="$(find ouster_ros)/launch/sensor.launch" />
+
+    <!--- Ladybug -->
+    <include file="$(find pointgrey_ladybug)/launch/test.launch" />
+
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find ouster_ros)/config/rviz_config.rviz" />
+
+</launch>

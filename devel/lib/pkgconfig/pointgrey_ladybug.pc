@@ -1,0 +1,8 @@
+prefix=/home/benni/catkin_ws/devel
+
+Name: pointgrey_ladybug
+Description: Description of pointgrey_ladybug
+Version: 1.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
