@@ -10,10 +10,10 @@ import copy
 import pandas as pd
 
 #pcap_path = "/home/benni/Desktop/Daten Master/Ouster/OS2_Campus_Test/OS-2-128-992317000331-2048x10.pcap"
-config = "/home/benni/Desktop/Daten Master/Ouster/OS2_Campus_Test/OS-2-128-992317000331-2048x10.json"
-ego_motion_path = "/home/benni/Desktop/Daten Master/Ouster/OS2_Campus_Test/campus_test.csv"
-save_path = "/home/benni/Desktop/Daten Master/Ouster/OS2_Campus_Test/pcd"
-osf_path = "/home/benni/Desktop/Daten Master/Ouster/OS2_Campus_Test/sample.osf"
+config = "/home/benni/catkin_ws/20240119_1310_OS-2-128_992317000331.json"
+ego_motion_path = "campus_test.csv"
+save_path = ""
+osf_path = "/home/benni/catkin_ws/OS-1-128-122138000426-2048x10.osf"
 
 
 with open(config, 'r') as f:
@@ -40,7 +40,9 @@ with closing(load_scan()) as stream:
         ones_img = np.ones_like(reflectivity_img[..., None])
         color_img = cv2.applyColorMap(
             np.uint8(reflectivity_img), cv2.COLORMAP_JET)
-        print("pose", scan.pose[0,...])
+        #print("pose", scan.pose[0,...])
+        print(scan)
+        #print("TS: ", scan.timestamp[0])
         
         cv2.imshow("tmp", color_img)
         # cv2.imshow("spherical",ref_img_col)

@@ -13,7 +13,7 @@
     <node pkg="master" type="record_pgr" name="record_pgr" output="screen" if="$(arg record_pgr)"/>
 
     <node pkg="master" type="record_pcap.py" name="record_pcap" output="screen" if="$(arg record_pcap)" required="true">
-        <param name="capture_time" type="int" value="42"/>
+        <!--<param name="capture_time" type="int" value="42"/> -->
     </node>
 
 </launch>

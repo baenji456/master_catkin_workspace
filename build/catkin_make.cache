@@ -1,2 +1,0 @@
-master:ouster-ros:pointgrey_ladybug
--DCATKIN_DEVEL_PREFIX=/home/benni/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/benni/catkin_ws/install -G Unix Makefiles

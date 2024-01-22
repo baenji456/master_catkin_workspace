@@ -3,6 +3,7 @@
 #include <sstream>
 #include "ladybug.h"
 #include "ladybugstream.h"
+#include "ladybugGPS.h"
 #include <stdexcept>
 #include <unistd.h>
 #include <signal.h>
@@ -25,9 +26,11 @@ using namespace std;
 static volatile int running_ = 1;
 
 #define DEBUG_GPS_PPS true
+#define USE_USB_GPS false
 
 LadybugContext m_context = NULL;
 LadybugStreamContext s_context = NULL;//BEN
+LadybugGPSContext GPScontext;//BEN
 bool bRecordingInProgress = false; //BEN
 double totalMBWritten = 0.0; // BEN
 unsigned long totalNumberOfImagesWritten = 0; //BEN
@@ -57,6 +60,7 @@ inline const char * const BoolToString(bool b)
 {
   return b ? "true" : "false";
 }
+
 //END BEN
 
 /**
@@ -223,8 +227,6 @@ LadybugError init_camera() {
     if (error != LADYBUG_OK) {
         throw std::runtime_error("Unable to create Ladybug context.");
     }
-
-
 
     // Here we want to get the number of cameras this sensor has
     LadybugCameraInfo enumeratedCameras[16];
@@ -416,7 +418,7 @@ LadybugError start_camera() {
 
     const char* pszStreamNameToOpen;
     //char pszStreamBaseName = 'mypgr'
-    pszStreamNameToOpen = "/home/benni/catkin_ws/0_Stream_Files/PGR/ladybug";
+    pszStreamNameToOpen = "/home/benni/catkin_ws/ladybug";
     //sprintf( pszStreamNameToOpen, "%s/%s",homedir, pszStreamBaseName );
     char* pszStreamNameOpened;
 
@@ -445,6 +447,41 @@ LadybugError start_camera() {
         ROS_ERROR("Error: Failed to sync to gps (%s). Terminating...", ladybugErrorToString(TimeSyncError) );
     }
     // END BEN
+
+    // INITIALIZE AND START USB GPS
+    if (USE_USB_GPS){
+        // Create GPS context
+        printf( "Creating GPS context...\n" );
+        error = ladybugCreateGPSContext( &GPScontext );
+        if (error != LADYBUG_OK) {
+            throw std::runtime_error("Unable to create GPS context.");
+        }
+
+        // Register the GPS context with the Ladybug context
+        printf( "Registering GPS...\n" );
+        error = ladybugRegisterGPS( m_context, &GPScontext );
+        if (error != LADYBUG_OK) {
+            throw std::runtime_error("Unable to register GPS context.");
+        }
+
+
+        std::string gpsDeviceName = "/dev/ttyUSB0";
+        unsigned int uiGPSBaudRate = 115200;
+        unsigned int uiGPSUpdateInterval = 1000;
+        // Initialize GPS context with the supplied settings
+        printf( "Initializing GPS...\n" );
+        error = ladybugInitializeGPSEx(GPScontext, gpsDeviceName.c_str(), uiGPSBaudRate, uiGPSUpdateInterval);
+        if (error != LADYBUG_OK) {
+            throw std::runtime_error("Unable to initialize GPS.");
+        }
+
+        // BEN Start GPS for NMEA sentence
+        error = ladybugStartGPS( GPScontext );
+        if (error != LADYBUG_OK) {
+            ROS_ERROR("Error: Unable to start GPS (%s)", ladybugErrorToString(error));
+        }
+    }
+    //END BEN
 
     // Done, return the erro if wehad one
     return error;
@@ -551,83 +588,97 @@ int main (int argc, char **argv)
     ros::Rate loop_rate(m_frameRate);
     long int count = 0;
     while (running_ && ros::ok()) {
+        if (count > 10){
+            // Aquire a new image from the device
+            LadybugImage currentImage;
+            const LadybugError acquisitionError = acquire_image(currentImage);
+            if (acquisitionError != LADYBUG_OK) {
+                ROS_WARN("Failed to acquire image. Error (%s). Trying to continue..", ladybugErrorToString(acquisitionError) );
+                continue;
+            }
 
-        // Aquire a new image from the device
-        LadybugImage currentImage;
-        const LadybugError acquisitionError = acquire_image(currentImage);
-        if (acquisitionError != LADYBUG_OK) {
-            ROS_WARN("Failed to acquire image. Error (%s). Trying to continue..", ladybugErrorToString(acquisitionError) );
-            continue;
-        }
-
-        // BEN
-        /*LadybugImage currentImage;
-        const LadybugError GrabbingError = ::ladybugGrabImage(m_context, &currentImage);
-        if (GrabbingError != LADYBUG_OK) {
-            ROS_WARN("Failed to grab image. Error (%s). Trying to continue..", ladybugErrorToString(GrabbingError) );
-            continue;
-        }*/
-
-
-        // Write Image to PGR
-        const LadybugError WritingError = ladybugWriteImageToStream( s_context, 
-                    &currentImage, 
-                    &totalMBWritten, 
-                    &totalNumberOfImagesWritten );
-        if (WritingError != LADYBUG_OK) {
-            ROS_WARN("Failed to write image to stream. Error (%s). Trying to continue..", ladybugErrorToString(WritingError) );
-            continue;
-        }
-
-        
-
-        if (DEBUG_GPS_PPS){
-            LadybugImageInfo info = currentImage.imageInfo;
-            ROS_INFO("Image Info - PPS Status: (%s)", BoolToString(info.bPpsStatus));
-            ROS_INFO("Image Info - GPS Status: (%s)", BoolToString(info.bGpsStatus));
-            ROS_INFO("Image Info - GPS Fix Quality: (%i)\n", info.ulGpsFixQuality);
-            //ROS_INFO("Image Info - GPS Latitude: (%f)\n", info.dGPSLatitude);
-        }
+            // BEN
+            /*LadybugImage currentImage;
+            const LadybugError GrabbingError = ::ladybugGrabImage(m_context, &currentImage);
+            if (GrabbingError != LADYBUG_OK) {
+                ROS_WARN("Failed to grab image. Error (%s). Trying to continue..", ladybugErrorToString(GrabbingError) );
+                continue;
+            }*/
 
 
-        // END BEN
+            // Write Image to PGR
+            const LadybugError WritingError = ladybugWriteImageToStream( s_context, 
+                        &currentImage, 
+                        &totalMBWritten, 
+                        &totalNumberOfImagesWritten );
+            if (WritingError != LADYBUG_OK) {
+                ROS_WARN("Failed to write image to stream. Error (%s). Trying to continue..", ladybugErrorToString(WritingError) );
+                continue;
+            }
+            
+            if (USE_USB_GPS){
+                //Get NMEA Data from USB Device
+                LadybugNMEAGPRMC rmc;
+                LadybugError gpsError = ladybugGetGPSNMEAData( GPScontext, "GPRMC", &rmc);
+                if (gpsError != LADYBUG_OK) {
+                    ROS_WARN("Failed to get GPS Data Error (%s). Trying to continue..", ladybugErrorToString(gpsError) );
+                    continue;
+                }
+                ROS_INFO("Image Info - NMEA Seconds: (%c)", rmc.ucRMCDataValid); // GPS Data - with USB (TODO: without USB)
+            }
 
-/*         // Convert to OpenCV Mat
-        // NOTE: receive Bayer Image, convert to Color 3 channels
-        cv::Size size(currentImage.uiFullCols, currentImage.uiFullRows);
 
-        // Current timestamp of this image
-        ros::Time timestamp = ros::Time::now();
+            if (DEBUG_GPS_PPS){
+                LadybugImageInfo info = currentImage.imageInfo;
+                ROS_INFO("Image Info - PPS Status: (%s)", BoolToString(info.bPpsStatus)); // GPS Sync - no USB
+                ROS_INFO("Image Info - GPS Status: (%s)", BoolToString(info.bGpsStatus)); // GPS Sync - no USB
+                ROS_INFO("Image Info - GPS Fix Quality: (%i)\n", info.ulGpsFixQuality); // GPS Sync - no USB
+                //ROS_INFO("Image Info - GPS Latitude: (%f)\n", info.dGPSLatitude);
+            }
 
-        // For each of the cameras, publish to ROS
-        for(size_t i=0; i<LADYBUG_NUM_CAMERAS; i++) {
 
-            // Debug print outs
-            //ROS_INFO("image time %.5f",currentImage.timeStamp.ulSeconds+1e-6*currentImage.timeStamp.ulMicroSeconds);
-
-            // Get the raw image, and convert it into the standard RGB image type
-            cv::Mat rawImage(size, CV_8UC1, currentImage.pData + (i * size.width*size.height));
-            cv::Mat image(size, CV_8UC3);
-            cv::cvtColor(rawImage, image, cv::COLOR_BayerBG2RGB);
-
-            // Resize the image based on the specified amount
-            cv::resize(image,image,cv::Size(size.width*image_scale/100, size.height*image_scale/100));
-
-            // By default the image is side-ways, so correct for this
-            cv::transpose(image, image);
-            cv::flip(image, image, 1);
-
-            // Publish the current image!
-            // TODO: also publish the camera info here too!
-            publishImage(timestamp, image, pub[i], count, i);
-            //BEN
-            //publishInfo(timestamp, private_nh, pub_info[i], count, i);
             // END BEN
+
+    /*         // Convert to OpenCV Mat
+            // NOTE: receive Bayer Image, convert to Color 3 channels
+            cv::Size size(currentImage.uiFullCols, currentImage.uiFullRows);
+
+            // Current timestamp of this image
+            ros::Time timestamp = ros::Time::now();
+
+            // For each of the cameras, publish to ROS
+            for(size_t i=0; i<LADYBUG_NUM_CAMERAS; i++) {
+
+                // Debug print outs
+                //ROS_INFO("image time %.5f",currentImage.timeStamp.ulSeconds+1e-6*currentImage.timeStamp.ulMicroSeconds);
+
+                // Get the raw image, and convert it into the standard RGB image type
+                cv::Mat rawImage(size, CV_8UC1, currentImage.pData + (i * size.width*size.height));
+                cv::Mat image(size, CV_8UC3);
+                cv::cvtColor(rawImage, image, cv::COLOR_BayerBG2RGB);
+
+                // Resize the image based on the specified amount
+                cv::resize(image,image,cv::Size(size.width*image_scale/100, size.height*image_scale/100));
+
+                // By default the image is side-ways, so correct for this
+                cv::transpose(image, image);
+                cv::flip(image, image, 1);
+
+                // Publish the current image!
+                // TODO: also publish the camera info here too!
+                publishImage(timestamp, image, pub[i], count, i);
+                //BEN
+                //publishInfo(timestamp, private_nh, pub_info[i], count, i);
+                // END BEN
+            }
+            */
+            // Unlock the image buffer for this image
+            unlock_image(currentImage.uiBufferIndex);
+            // Spin, so everything is published, and wait if needed
         }
-        */
-        // Unlock the image buffer for this image
-        unlock_image(currentImage.uiBufferIndex);
-        // Spin, so everything is published, and wait if needed
+        else{
+            ROS_INFO("Skipping first 10 images");
+        }
         ros::spinOnce();
         loop_rate.sleep();
         count++;
