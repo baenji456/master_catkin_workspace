@@ -7,6 +7,7 @@ WORKDIR /catkin_ws
 # Kopiere den Catkin-Workspace in das Image
 COPY . /catkin_ws
 
+ENV DEBIAN_FRONTEND=noninteractive
 # install ros packages
 RUN rm -fr /var/lib/apt/lists/*
 # Installiere Abhängigkeiten
@@ -23,10 +24,28 @@ RUN apt-get update && apt-get install --fix-missing -y \
     python3-catkin-tools \
     python3-pip \
     tf \
+    libxerces-c3.2 \
+    libraw1394-11 \
+    libc6 \
+    libusb-1.0-0 \
+    xsdcxx \
+    wget \
+    libavcodec58 \
+    libavformat58 \
+    libavutil56 \
+    libswscale5 \
+    libglu1-mesa \
+    libomp5 \
+    freeglut3 \
+    freeglut3-dev \
+    libglu1-mesa-dev \
     && rm -rf /var/lib/apt/lists/*
+
+RUN bash install_ladybug/ladybug-1.20.0.78-amd64/install_ladybug.sh
 
 # Baue den Catkin-Workspace
 RUN /bin/bash -c "source /opt/ros/noetic/setup.bash"
+
 
 # Setze den Startbefehl für den Container
 CMD ["bash"]
