@@ -9,9 +9,9 @@ services:
     stdin_open: true # docker run -i
     tty: true        # docker run -t
     volumes: 
-      - "/home/benni/catkin_ws/src:/catkin_ws/src"
-      - "/home/benni/catkin_ws/0_Data/PGR:/catkin_ws/0_Data/PGR"
-      - "/home/benni/catkin_ws/0_Data/PCAP:/catkin_ws/0_Data/PCAP"
+      - "C:\\Users\\benja\\OneDrive\\Master\\Projekt\\master_catkin_workspace\\src:/catkin_ws/src"
+      - "C:\\Users\\benja\\OneDrive\\Master\\Projekt\\master_catkin_workspace\\0_Data\\PGR:/catkin_ws/0_Data/PGR"
+      - "C:\\Users\\benja\\OneDrive\\Master\\Projekt\\master_catkin_workspace\\0_Data\\PCAP:/catkin_ws/0_Data/PCAP"
     #devices:
       # sharing graphics driver (http://wiki.ros.org/docker/Tutorials/Hardware%20Acceleration#nvidia-docker2)
       # - "/dev/dri:/dev/dri"
