@@ -25,8 +25,8 @@ using namespace std;
 
 static volatile int running_ = 1;
 
-#define DEBUG_GPS_PPS true
-#define USE_USB_GPS false
+#define DEBUG_GPS_PPS false
+#define USE_USB_GPS true
 
 LadybugContext m_context = NULL;
 LadybugStreamContext s_context = NULL;//BEN
@@ -61,6 +61,13 @@ inline const char * const BoolToString(bool b)
   return b ? "true" : "false";
 }
 
+std::string GeneratePositionString(const LadybugNMEAGPRMC& rmc)
+{
+    std::stringstream output;
+    output << (int)rmc.ucRMCHour << ":" << (int)rmc.ucRMCMinute << ":" << (int)rmc.ucRMCSecond << "." << (int)rmc.wRMCSubSecond;
+
+    return output.str();
+}
 //END BEN
 
 /**
@@ -605,6 +612,20 @@ int main (int argc, char **argv)
                 continue;
             }*/
 
+            if (USE_USB_GPS){
+                //Get NMEA Data from USB Device
+                LadybugNMEAGPRMC rmc;
+                LadybugError gpsError = ladybugGetGPSNMEAData( GPScontext, "GPRMC", &rmc);
+                if (gpsError != LADYBUG_OK) {
+                    ROS_WARN("Failed to get GPS Data Error (%s). Trying to continue..", ladybugErrorToString(gpsError) );
+                    continue;
+                }
+                //ROS_INFO("Image Info - NMEA Seconds: (%c)", rmc.ucRMCDataValid); // GPS Data - with USB (TODO: without USB)
+                std::stringstream output;
+                output << GeneratePositionString(rmc);
+                printf("%s\n", output.str().c_str());
+            }
+
 
             // Write Image to PGR
             const LadybugError WritingError = ladybugWriteImageToStream( s_context, 
@@ -614,17 +635,6 @@ int main (int argc, char **argv)
             if (WritingError != LADYBUG_OK) {
                 ROS_WARN("Failed to write image to stream. Error (%s). Trying to continue..", ladybugErrorToString(WritingError) );
                 continue;
-            }
-            
-            if (USE_USB_GPS){
-                //Get NMEA Data from USB Device
-                LadybugNMEAGPRMC rmc;
-                LadybugError gpsError = ladybugGetGPSNMEAData( GPScontext, "GPRMC", &rmc);
-                if (gpsError != LADYBUG_OK) {
-                    ROS_WARN("Failed to get GPS Data Error (%s). Trying to continue..", ladybugErrorToString(gpsError) );
-                    continue;
-                }
-                ROS_INFO("Image Info - NMEA Seconds: (%c)", rmc.ucRMCDataValid); // GPS Data - with USB (TODO: without USB)
             }
 
 
