@@ -43,8 +43,13 @@ RUN apt-get update && apt-get install --fix-missing -y \
 
 RUN bash install_ladybug/ladybug-1.20.0.78-amd64/install_ladybug.sh
 
+#create symbolic links for linker
+RUN ln -s /usr/lib/ladybug/libladybug.so /usr/lib/libladybug.so
+RUN ln -s /usr/lib/ladybug/libflycapture.so /usr/lib/libflycapture.so
+
 # Baue den Catkin-Workspace
-RUN /bin/bash -c "source /opt/ros/noetic/setup.bash"
+#RUN source /opt/ros/noetic/setup.bash
+#RUN catkin build
 
 
 # Setze den Startbefehl für den Container
