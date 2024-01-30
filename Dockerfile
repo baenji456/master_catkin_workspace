@@ -10,6 +10,9 @@ COPY . /catkin_ws
 ENV DEBIAN_FRONTEND=noninteractive
 # install ros packages
 RUN rm -fr /var/lib/apt/lists/*
+
+RUN sed -i'' 's/archive\.ubuntu\.com/us\.archive\.ubuntu\.com/' /etc/apt/sources.list
+
 # Installiere Abhängigkeiten
 RUN apt-get update && apt-get install --fix-missing -y \
     libspdlog-dev \
