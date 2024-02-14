@@ -1,0 +1,3 @@
+The Flir Ladybug Release Notes can be viewed online here:
+https://www.flir.com/support-center/iis/machine-vision/knowledge-base/ladybug-sdk-release-notes/
+We welcome your bug reports, questions, and comments at: <mv-support@flir.com>

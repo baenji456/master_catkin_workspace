@@ -4,16 +4,28 @@ services:
   foo:
     container_name: "benni_capture_sys"
     image: "benni_capture_sys"
-    build: .
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+      args:
+        - USER_ID=$USER_ID
+        - USER_NAME=$USER_NAME
     network_mode: "host"
     stdin_open: true # docker run -i
     tty: true        # docker run -t
+    ipc: "host"
     volumes: 
-      - "/home/benni/catkin_ws/src:/catkin_ws/src"
-      - "/home/benni/catkin_ws/0_Data/PGR:/catkin_ws/0_Data/PGR"
-      - "/home/benni/catkin_ws/0_Data/PCAP:/catkin_ws/0_Data/PCAP"
+      - "./src:/home/$USER_ID/catkin_ws/src"
+      - "/home/benni/catkin_ws/0_Data/PGR:/home/$USER_ID/catkin_ws/0_Data/PGR"
+      - "/home/benni/catkin_ws/0_Data/PCAP:/home/$USER_ID/catkin_ws/0_Data/PCAP"
+      - /dev:/dev
+      #- "/dev:/dev"
     #devices:
       # sharing graphics driver (http://wiki.ros.org/docker/Tutorials/Hardware%20Acceleration#nvidia-docker2)
       # - "/dev/dri:/dev/dri"
       # mounting usb port for sbg imu
       #- "/dev/ttyUSB0:/dev/ttyUSB0"
+      # mounting ??? for Ladybug Camera
+      #- "/dev:/dev"
+    #ports:
+    #  - "3000:3000"

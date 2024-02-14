@@ -26,7 +26,7 @@ using namespace std;
 static volatile int running_ = 1;
 
 #define DEBUG_GPS_PPS false
-#define USE_USB_GPS true
+#define USE_USB_GPS false
 
 LadybugContext m_context = NULL;
 LadybugStreamContext s_context = NULL;//BEN

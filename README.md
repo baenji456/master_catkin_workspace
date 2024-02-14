@@ -2,6 +2,10 @@
 
 1) docker build -t benni_capture_sys .
 
+2) Find Ladybug Port
+    - dmesg
+    - 
+
 2) docker compose up
 
 ## Im Container
