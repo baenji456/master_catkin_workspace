@@ -1,19 +1,15 @@
 # Verwende das offizielle ROS-Basisimage
 FROM ros:noetic
 
-# Setze das Arbeitsverzeichnis im Container
-#WORKDIR /catkin_ws
-
-# Kopiere den Catkin-Workspace in das Image
-#COPY . /catkin_ws
-
 # create a non-root user
 ARG USER_NAME="benni"
 ARG USER_ID="1004"
 
 ENV DEBIAN_FRONTEND=noninteractive
+
 # install ros packages
 RUN rm -fr /var/lib/apt/lists/*
+
 # Installiere Abhängigkeiten
 RUN apt-get update && apt-get install --fix-missing -y \
     libspdlog-dev \
@@ -49,38 +45,26 @@ RUN apt-get update && apt-get install --fix-missing -y \
 
 RUN useradd -m --no-log-init --system  --uid ${USER_ID} ${USER_NAME} -g sudo
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-USER ${USER_NAME}
+
+# create home directory for user
 RUN mkdir -p /home/${USER_NAME}
-
 COPY . /home/${USER_NAME}/catkin_ws
-
 WORKDIR /home/${USER_NAME}/catkin_ws
-
-USER root
 RUN rm -rf build
 RUN rm -rf devel
-USER ${USER_NAME}
 
-#RUN bash /home/${USER_NAME}/install_ladybug/ladybug-1.20.0.78-amd64/install_ladybug.sh
 RUN bash /home/${USER_NAME}/catkin_ws/install_ladybug/ladybug-1.19.0.13-amd64/install_ladybug.sh
 
+# manually configure the USB-FS memory
+COPY rc.local /etc/rc.local
+RUN chmod 744 /etc/rc.local
+
 #create symbolic links for linker
-#RUN ln -s /usr/lib/ladybug/libladybug.so /usr/lib/libladybug.so
-#RUN ln -s /usr/lib/ladybug/libflycapture.so /usr/lib/libflycapture.so
-
-# Baue den Catkin-Workspace
-
-#RUN source /opt/ros/noetic/setup.bash
-#RUN catkin build
-
-
-# Setze den Startbefehl für den Container
-#CMD ["bash"]
-
-USER root
-
 RUN ln -s /usr/lib/ladybug/libladybug.so /usr/lib/libladybug.so
 RUN ln -s /usr/lib/ladybug/libflycapture.so /usr/lib/libflycapture.so
+
+# ladybug needs Documents folder to create context
+RUN mkdir /root/Documents
 
 RUN echo "source /opt/ros/noetic/setup.bash" >> ~/.profile
 RUN echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc

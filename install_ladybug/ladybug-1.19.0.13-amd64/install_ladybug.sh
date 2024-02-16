@@ -38,6 +38,7 @@ echo "  Please note that this will change the permissions for all IEEE1394/USB d
 echo "  including hard drives and web cams. It will allow members of the flirimaging group"
 echo "  to read and modify data on any IEEE1394/USB device."
 
+confirm='Y'
 if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ] || [ "$confirm" = "yes" ] || [ "$confirm" = "Yes" ] || [ "$confirm" = "" ]
 then
     echo "Launching udev configuration script..."

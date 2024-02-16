@@ -425,7 +425,7 @@ LadybugError start_camera() {
 
     const char* pszStreamNameToOpen;
     //char pszStreamBaseName = 'mypgr'
-    pszStreamNameToOpen = "/home/benni/catkin_ws/ladybug";
+    pszStreamNameToOpen = "/home/benni/catkin_ws/0_Data/PCAP/ladybug";
     //sprintf( pszStreamNameToOpen, "%s/%s",homedir, pszStreamBaseName );
     char* pszStreamNameOpened;
 
