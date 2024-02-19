@@ -10,6 +10,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 # install ros packages
 RUN rm -fr /var/lib/apt/lists/*
 
+#TODO HOW TO GET RVIZ IN DOCKER
+#RUN apt-get update && apt-get install ros-noetic-rviz
+
 # Installiere Abhängigkeiten
 RUN apt-get update && apt-get install --fix-missing -y \
     libspdlog-dev \
@@ -47,13 +50,13 @@ RUN useradd -m --no-log-init --system  --uid ${USER_ID} ${USER_NAME} -g sudo
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 # create home directory for user
-RUN mkdir -p /home/${USER_NAME}
-COPY . /home/${USER_NAME}/catkin_ws
-WORKDIR /home/${USER_NAME}/catkin_ws
+RUN mkdir -p /home/benni
+COPY . /home/benni/catkin_ws
+WORKDIR /home/benni/catkin_ws
 RUN rm -rf build
 RUN rm -rf devel
 
-RUN bash /home/${USER_NAME}/catkin_ws/install_ladybug/ladybug-1.19.0.13-amd64/install_ladybug.sh
+RUN bash /home/benni/catkin_ws/install_ladybug/ladybug-1.19.0.13-amd64/install_ladybug.sh
 
 # manually configure the USB-FS memory
 COPY rc.local /etc/rc.local
@@ -68,14 +71,14 @@ RUN mkdir /root/Documents
 
 RUN echo "source /opt/ros/noetic/setup.bash" >> ~/.profile
 RUN echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
-RUN echo "source /home/${USER_NAME}/catkin_ws/devel/setup.bash" >> ~/.profile
-RUN echo "source /home/${USER_NAME}/catkin_ws/devel/setup.bash" >> ~/.bashrc
+RUN echo "source /home/benni/catkin_ws/devel/setup.bash" >> ~/.profile
+RUN echo "source /home/benni/catkin_ws/devel/setup.bash" >> ~/.bashrc
 RUN echo "echo "ros 1 noetic sourced"" >> ~/.profile
 RUN echo "echo "ros 1 noetic sourced"" >> ~/.bashrc
 
 # setup entrypoint
-COPY ros_entrypoint.sh /home/${USER_NAME}/catkin_ws/
-RUN chmod +x /home/${USER_NAME}/catkin_ws/ros_entrypoint.sh
+COPY ros_entrypoint.sh /home/benni/catkin_ws/
+RUN chmod +x /home/benni/catkin_ws/ros_entrypoint.sh
 ENTRYPOINT /home/benni/catkin_ws/ros_entrypoint.sh
 
-RUN chmod +x /home/${USER_NAME}/catkin_ws/src/master/src/Record_PGR.cpp
+RUN chmod +x /home/benni/catkin_ws/src/master/src/Record_PGR.cpp

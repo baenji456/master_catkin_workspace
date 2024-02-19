@@ -17,4 +17,15 @@ services:
       - "/home/benni/catkin_ws/0_Data/PGR:/home/benni/catkin_ws/0_Data/PGR"
       - "/home/benni/catkin_ws/0_Data/PCAP:/home/benni/catkin_ws/0_Data/PCAP"
       - "/dev/bus/usb:/dev/bus/usb"
+      #- "/dev:/dev"
+    devices:
+      # sharing graphics driver (http://wiki.ros.org/docker/Tutorials/Hardware%20Acceleration#nvidia-docker2)
+      - "/dev/dri:/dev/dri"
+    
+    # 'xhost +local:docker' must be done in terminal outside of docker container
+    environment:
+      - DISPLAY=$DISPLAY
+      #- DISPLAY=192.168.56.1:0.0
+      - QT_X11_NO_MITSHM=1
+      - XAUTHORITY=/tmp/.docker.xauth
 

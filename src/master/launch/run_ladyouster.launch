@@ -2,8 +2,8 @@
 
     <arg name="project" default="all"/>
 
-    <!--- LIDAR -->
-    <include file="$(find ouster_ros)/launch/sensor.launch" />
+    <!--- LIDAR 
+    <include file="$(find ouster_ros)/launch/sensor.launch" />-->
 
     <!--- Ladybug -->
     <include file="$(find pointgrey_ladybug)/launch/test.launch" />
