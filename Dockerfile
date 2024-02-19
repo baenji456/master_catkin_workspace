@@ -15,6 +15,7 @@ RUN rm -fr /var/lib/apt/lists/*
 
 # Installiere Abhängigkeiten
 RUN apt-get update && apt-get install --fix-missing -y \
+    python3-pip \
     libspdlog-dev \
     ros-noetic-tf2-eigen \
     curl \
@@ -44,7 +45,8 @@ RUN apt-get update && apt-get install --fix-missing -y \
     libglu1-mesa-dev \
     && rm -rf /var/lib/apt/lists/*
 
-
+RUN pip install ouster-sdk
+RUN pip install libpcap
 
 RUN useradd -m --no-log-init --system  --uid ${USER_ID} ${USER_NAME} -g sudo
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
@@ -82,3 +84,4 @@ RUN chmod +x /home/benni/catkin_ws/ros_entrypoint.sh
 ENTRYPOINT /home/benni/catkin_ws/ros_entrypoint.sh
 
 RUN chmod +x /home/benni/catkin_ws/src/master/src/Record_PGR.cpp
+RUN chmod +x /home/benni/catkin_ws/src/master/scripts/record_pcap.py

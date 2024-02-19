@@ -1,7 +1,7 @@
 <launch>
 
     <arg name="project" default="all"/>
-    <arg name="record_pcap" default="true"/>
+    <arg name="record_pcap" default="false"/>
     <arg name="record_pgr" default="true"/>
 
     <!--- LIDAR -->

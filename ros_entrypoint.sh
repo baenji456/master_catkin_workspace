@@ -10,6 +10,9 @@ source /opt/ros/noetic/setup.bash
 # not possible in Dockerfile (mount is not available from Dockerfile)
 #rosdep install --from-path src --ignore-src -r -y
 
+# Configuring USB-FS
+sh -c 'echo 1000 > /sys/module/usbcore/parameters/usbfs_memory_mb'
+
 # build catkin workspace
 catkin_make
 # source devel/setup.bash
